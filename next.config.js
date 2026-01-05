@@ -1,15 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  output: 'export',
+  basePath: '/mifos-x-launchpad',
+  assetPrefix: '/mifos-x-launchpad/',
+  trailingSlash: true,
   images: {
-    domains: [],
     unoptimized: true,
-  },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
   },
 };
 
