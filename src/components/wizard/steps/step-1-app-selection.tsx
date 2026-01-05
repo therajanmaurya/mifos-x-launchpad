@@ -1,19 +1,28 @@
 'use client';
 
-import { Check, ExternalLink, Wallet, Smartphone, Users, FileCode } from 'lucide-react';
+import { useCallback } from 'react';
+import { Check, ExternalLink, Wallet, Smartphone, Users, FileCode, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAppSelection } from '@/store/wizard-store';
+import { useAppSelection, useSDKInfo } from '@/store/wizard-store';
 import {
   APP_OPTIONS,
   PLATFORM_LABELS,
   type AppOption,
-  type AppType
+  type AppType,
+  type SDKInfo
 } from '@/types/wizard';
 
 export function Step1AppSelection() {
   const { selectedApp, selectedAppData, selectApp } = useAppSelection();
+  const { sdkInfo, isLoading, error, fetchSDKInfo, retryFetchSDKInfo } = useSDKInfo();
+
+  // Handle app selection with SDK fetch
+  const handleAppSelect = useCallback((appType: AppType) => {
+    selectApp(appType);
+    fetchSDKInfo(appType);
+  }, [selectApp, fetchSDKInfo]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -34,15 +43,34 @@ export function Step1AppSelection() {
               key={app.id}
               app={app}
               isSelected={selectedApp === app.id}
-              onSelect={selectApp}
+              onSelect={handleAppSelect}
+              isLoadingSDK={isLoading && selectedApp === app.id}
             />
           ))}
         </div>
+
+        {/* SDK Fetch Error */}
+        {error && selectedApp && (
+          <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-destructive">Failed to load SDK info</p>
+              <p className="text-sm text-muted-foreground truncate">{error}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={retryFetchSDKInfo}>
+              Retry
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Preview Panel - Desktop Only */}
       <div className="hidden lg:block w-[350px] shrink-0">
-        <PreviewPanel selectedApp={selectedAppData ?? null} />
+        <PreviewPanel
+          selectedApp={selectedAppData ?? null}
+          sdkInfo={sdkInfo}
+          isLoadingSDK={isLoading}
+        />
       </div>
     </div>
   );
@@ -56,9 +84,10 @@ interface AppCardProps {
   app: AppOption;
   isSelected: boolean;
   onSelect: (appId: AppType) => void;
+  isLoadingSDK?: boolean;
 }
 
-function AppCard({ app, isSelected, onSelect }: AppCardProps) {
+function AppCard({ app, isSelected, onSelect, isLoadingSDK }: AppCardProps) {
   const Icon = getAppIcon(app.icon);
 
   return (
@@ -86,7 +115,11 @@ function AppCard({ app, isSelected, onSelect }: AppCardProps) {
       {/* Selection Indicator */}
       {isSelected && (
         <div className="absolute top-3 right-3 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-          <Check className="w-4 h-4 text-primary-foreground" />
+          {isLoadingSDK ? (
+            <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
+          ) : (
+            <Check className="w-4 h-4 text-primary-foreground" />
+          )}
         </div>
       )}
 
@@ -154,9 +187,11 @@ function AppCard({ app, isSelected, onSelect }: AppCardProps) {
 
 interface PreviewPanelProps {
   selectedApp: AppOption | null;
+  sdkInfo: SDKInfo | null;
+  isLoadingSDK: boolean;
 }
 
-function PreviewPanel({ selectedApp }: PreviewPanelProps) {
+function PreviewPanel({ selectedApp, sdkInfo, isLoadingSDK }: PreviewPanelProps) {
   if (!selectedApp) {
     return (
       <Card className="sticky top-24">
@@ -189,6 +224,41 @@ function PreviewPanel({ selectedApp }: PreviewPanelProps) {
           <Badge variant="outline" className="mt-2">
             {selectedApp.status === 'active' ? 'Actively Maintained' : 'Maintained'}
           </Badge>
+        </div>
+
+        {/* SDK Info */}
+        <div>
+          <h4 className="font-medium text-sm text-muted-foreground mb-3">
+            SDK Configuration
+          </h4>
+          {isLoadingSDK ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Loading SDK info...</span>
+            </div>
+          ) : sdkInfo ? (
+            <div className="flex flex-wrap gap-1.5">
+              <Badge variant="secondary" className="text-xs">
+                Kotlin {sdkInfo.kotlin}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                Compose {sdkInfo.compose}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                AGP {sdkInfo.androidGradlePlugin}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                Android {sdkInfo.minAndroidSdk}-{sdkInfo.targetAndroidSdk}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                iOS {sdkInfo.minIosVersion}+
+              </Badge>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              SDK info will be loaded when app is selected
+            </p>
+          )}
         </div>
 
         {/* Features */}

@@ -14,6 +14,8 @@ import {
   type Step8State,
   type Step9State,
   type Step10State,
+  type RepoFetchState,
+  type SDKInfo,
   type ColorRole,
   type HexColor,
   type IconShape,
@@ -52,9 +54,11 @@ import {
   step8InitialState,
   step9InitialState,
   step10InitialState,
+  repoFetchInitialState,
   generateDarkPalette,
   getPresetById
 } from '@/types/wizard';
+import { fetchSDKInfoCached, getCachedSDKInfo } from '@/lib/services/github-api';
 
 /**
  * Initial state for Step 1
@@ -70,6 +74,7 @@ const step1InitialState: Step1State = {
 const initialState: WizardState = {
   currentStep: 1,
   maxStepReached: 1,
+  repoFetch: repoFetchInitialState,
   step1: step1InitialState,
   step2: step2InitialState,
   step3: step3InitialState,
@@ -155,6 +160,71 @@ export const useWizardStore = create<WizardStore>()(
             appFeatures: features
           }
         }));
+      },
+
+      // ========================================
+      // SDK Fetch Actions
+      // ========================================
+
+      fetchSDKInfo: async (appType: AppType) => {
+        // Check for cached data first (optimistic loading)
+        const cachedInfo = getCachedSDKInfo(appType);
+
+        if (cachedInfo) {
+          // Use cached data immediately - no loading state needed
+          set({
+            repoFetch: {
+              isLoading: false,
+              error: null,
+              sdkInfo: cachedInfo,
+              lastFetched: Date.now(),
+            },
+          });
+          return;
+        }
+
+        // No cache - show loading state and fetch
+        set({
+          repoFetch: {
+            isLoading: true,
+            error: null,
+            sdkInfo: null,
+            lastFetched: null,
+          },
+        });
+
+        try {
+          const sdkInfo = await fetchSDKInfoCached(appType);
+          set({
+            repoFetch: {
+              isLoading: false,
+              error: null,
+              sdkInfo,
+              lastFetched: Date.now(),
+            },
+          });
+        } catch (error) {
+          set({
+            repoFetch: {
+              isLoading: false,
+              error: error instanceof Error ? error.message : 'Failed to fetch SDK info',
+              sdkInfo: null,
+              lastFetched: null,
+            },
+          });
+        }
+      },
+
+      clearSDKInfo: () => {
+        set({ repoFetch: repoFetchInitialState });
+      },
+
+      retryFetchSDKInfo: async () => {
+        const { step1 } = get();
+        if (step1.selectedApp) {
+          const { fetchSDKInfo } = get();
+          await fetchSDKInfo(step1.selectedApp);
+        }
       },
 
       // ========================================
@@ -893,13 +963,31 @@ export function useWizardNavigation() {
  */
 export function useStep1Validation() {
   const { selectedApp } = useAppSelection();
+  const { isLoading, error, sdkInfo } = useSDKInfo();
 
-  const isValid = selectedApp !== null;
   const errors: string[] = [];
 
-  if (!isValid) {
+  // Check if app is selected
+  if (!selectedApp) {
     errors.push('Please select a base application');
   }
+
+  // Check if SDK is loading
+  if (isLoading) {
+    errors.push('Loading SDK configuration...');
+  }
+
+  // Check if SDK fetch failed
+  if (error) {
+    errors.push('Failed to load SDK info. Please retry or select a different app.');
+  }
+
+  // Check if SDK info was successfully loaded
+  if (selectedApp && !isLoading && !error && !sdkInfo) {
+    errors.push('SDK configuration not loaded');
+  }
+
+  const isValid = selectedApp !== null && !isLoading && !error && sdkInfo !== null;
 
   return { isValid, errors };
 }
@@ -1414,4 +1502,42 @@ export function useCanProceed() {
     canProceed: validation.isValid,
     errors: validation.errors
   };
+}
+
+/**
+ * Hook for SDK info state and actions
+ */
+export function useSDKInfo() {
+  const repoFetch = useWizardStore((state) => state.repoFetch);
+  const fetchSDKInfo = useWizardStore((state) => state.fetchSDKInfo);
+  const clearSDKInfo = useWizardStore((state) => state.clearSDKInfo);
+  const retryFetchSDKInfo = useWizardStore((state) => state.retryFetchSDKInfo);
+
+  return {
+    ...repoFetch,
+    fetchSDKInfo,
+    clearSDKInfo,
+    retryFetchSDKInfo,
+  };
+}
+
+/**
+ * Hook for just the SDK info data (no actions)
+ */
+export function useSDKInfoData() {
+  return useWizardStore((state) => state.repoFetch.sdkInfo);
+}
+
+/**
+ * Hook for SDK fetch loading state
+ */
+export function useSDKInfoLoading() {
+  return useWizardStore((state) => state.repoFetch.isLoading);
+}
+
+/**
+ * Hook for SDK fetch error state
+ */
+export function useSDKInfoError() {
+  return useWizardStore((state) => state.repoFetch.error);
 }

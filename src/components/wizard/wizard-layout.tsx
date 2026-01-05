@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Github } from 'lucide-react';
+import { ArrowLeft, Github, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -101,9 +101,14 @@ export function WizardLayout({ children }: WizardLayoutProps) {
 
           <div className="flex items-center gap-4">
             {errors.length > 0 && (
-              <span className="text-sm text-destructive hidden sm:inline">
-                {errors[0]}
-              </span>
+              <div className="hidden sm:flex items-center gap-2">
+                {errors[0].toLowerCase().includes('loading') && (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                )}
+                <span className={`text-sm ${errors[0].toLowerCase().includes('loading') ? 'text-muted-foreground' : 'text-destructive'}`}>
+                  {errors[0]}
+                </span>
+              </div>
             )}
             <Button
               onClick={handleNext}

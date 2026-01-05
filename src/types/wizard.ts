@@ -47,6 +47,88 @@ export interface AppOption {
 }
 
 /**
+ * Repository configuration for cloning/fetching project source
+ */
+export interface RepoConfig {
+  /** GitHub organization/owner */
+  owner: string;
+  /** Repository name */
+  repo: string;
+  /** Branch to use */
+  branch: string;
+  /** Path to libs.versions.toml file */
+  libsVersionsPath: string;
+}
+
+/**
+ * Detected SDK information from project's libs.versions.toml
+ */
+export interface SDKInfo {
+  /** Kotlin version */
+  kotlin: string;
+  /** Compose Multiplatform version */
+  compose: string;
+  /** Android Gradle Plugin version */
+  androidGradlePlugin: string;
+  /** Minimum Android SDK */
+  minAndroidSdk: number;
+  /** Target Android SDK */
+  targetAndroidSdk: number;
+  /** Minimum iOS version */
+  minIosVersion: string;
+  /** Package display name from project */
+  packageName: string;
+  /** Package namespace from project */
+  packageNamespace: string;
+  /** Package version from project */
+  packageVersion: string;
+}
+
+/**
+ * Repository fetch state for SDK detection
+ */
+export interface RepoFetchState {
+  /** Whether currently fetching */
+  isLoading: boolean;
+  /** Error message if fetch failed */
+  error: string | null;
+  /** Detected SDK information */
+  sdkInfo: SDKInfo | null;
+  /** Timestamp of last successful fetch */
+  lastFetched: number | null;
+}
+
+/**
+ * Map app types to their source repositories
+ */
+export const APP_REPOSITORIES: Record<AppType, RepoConfig> = {
+  'mobile-wallet': {
+    owner: 'openMF',
+    repo: 'mobile-wallet',
+    branch: 'dev',
+    libsVersionsPath: 'gradle/libs.versions.toml',
+  },
+  'mifos-mobile': {
+    owner: 'openMF',
+    repo: 'mifos-mobile',
+    branch: 'dev',
+    libsVersionsPath: 'gradle/libs.versions.toml',
+  },
+  'android-client': {
+    owner: 'openMF',
+    repo: 'android-client',
+    branch: 'dev',
+    libsVersionsPath: 'gradle/libs.versions.toml',
+  },
+  'blank': {
+    owner: 'openMF',
+    repo: 'kmp-project-template',
+    branch: 'main',
+    libsVersionsPath: 'gradle/libs.versions.toml',
+  },
+};
+
+/**
  * State for Step 1: App Selection
  */
 export interface Step1State {
@@ -569,6 +651,8 @@ export interface WizardState {
   currentStep: number;
   /** Maximum step reached (for navigation limits) */
   maxStepReached: number;
+  /** Repository fetch state for SDK detection */
+  repoFetch: RepoFetchState;
   /** Step 1: App Selection */
   step1: Step1State;
   /** Step 2: Project Info */
@@ -772,9 +856,21 @@ export interface Step10Actions {
 }
 
 /**
+ * SDK fetch actions
+ */
+export interface SDKActions {
+  /** Fetch SDK info for selected app type */
+  fetchSDKInfo: (appType: AppType) => Promise<void>;
+  /** Clear SDK info */
+  clearSDKInfo: () => void;
+  /** Retry fetching SDK info */
+  retryFetchSDKInfo: () => Promise<void>;
+}
+
+/**
  * Wizard actions combining all step actions
  */
-export interface WizardActions extends WizardNavigationActions, Step1Actions, Step2Actions, Step3Actions, Step4Actions, Step5Actions, Step6Actions, Step7Actions, Step8Actions, Step9Actions, Step10Actions {
+export interface WizardActions extends WizardNavigationActions, Step1Actions, Step2Actions, Step3Actions, Step4Actions, Step5Actions, Step6Actions, Step7Actions, Step8Actions, Step9Actions, Step10Actions, SDKActions {
   /** Reset entire wizard to initial state */
   resetWizard: () => void;
 }
@@ -800,6 +896,176 @@ export interface ValidationResult {
  * Step validation function type
  */
 export type StepValidator<T> = (data: T) => ValidationResult;
+
+// ============================================
+// Generator Types
+// ============================================
+
+/**
+ * Configuration for file generation
+ */
+export interface GeneratorConfig {
+  /** Project name (alphanumeric, no spaces) */
+  projectName: string;
+  /** Display name (shown to users) */
+  displayName: string;
+  /** Package name (reverse domain) */
+  packageName: string;
+  /** Organization name */
+  organizationName: string;
+  /** Support email */
+  supportEmail: string;
+  /** Version name (semantic) */
+  versionName: string;
+}
+
+/**
+ * TOML file replacements configuration
+ */
+export interface TomlReplacements {
+  /** Package display name */
+  packageName: string;
+  /** Package namespace (reverse domain) */
+  packageNamespace: string;
+  /** Android package namespace */
+  androidPackageNamespace?: string;
+  /** Package version */
+  packageVersion: string;
+}
+
+/**
+ * Android strings.xml replacements configuration
+ */
+export interface AndroidStringReplacements {
+  /** App name shown in launcher */
+  appName: string;
+  /** App name shown in about screen */
+  featureAboutAppName?: string;
+  /** Support phone number */
+  helpLineNumber?: string;
+  /** Support email address */
+  contactEmail?: string;
+  /** Custom string replacements (key -> value) */
+  customStrings?: Record<string, string>;
+}
+
+/**
+ * iOS Config.xcconfig replacements configuration
+ */
+export interface IOSConfigReplacements {
+  /** Apple Developer Team ID */
+  teamId: string;
+  /** Bundle identifier (reverse domain) */
+  bundleId: string;
+  /** App display name */
+  appName: string;
+  /** Custom configuration entries (key -> value) */
+  customConfig?: Record<string, string>;
+}
+
+/**
+ * Web HTML string replacements for cmp-web index.html files
+ * Used to customize the web application metadata and branding
+ */
+export interface WebStringReplacements {
+  /** Project name (used in module names, e.g., "cmp-web") */
+  projectName: string;
+  /** Display name (used in title, meta tags) */
+  displayName: string;
+  /** Project description */
+  description?: string;
+  /** Organization/author name */
+  organizationName?: string;
+  /** Project keywords for meta tags */
+  keywords?: string[];
+  /** Copyright holder */
+  copyright?: string;
+  /** Open Graph URL */
+  ogUrl?: string;
+  /** Open Graph/Twitter image URL */
+  ogImage?: string;
+  /** Custom meta tags (name -> content) */
+  customMeta?: Record<string, string>;
+}
+
+/**
+ * GitHub Actions workflow configuration
+ * Used to generate customized CI/CD workflow files
+ */
+export interface WorkflowConfig {
+  /** Target branch for builds (e.g., 'development', 'main') */
+  targetBranch: string;
+  /** Android module name (e.g., 'cmp-android') */
+  androidPackageName: string;
+  /** iOS module name (e.g., 'cmp-ios') */
+  iosPackageName: string;
+  /** Desktop module name (e.g., 'cmp-desktop') */
+  desktopPackageName: string;
+  /** Web module name (e.g., 'cmp-web') */
+  webPackageName: string;
+  /** Shared KMP module path (e.g., ':cmp-shared') */
+  sharedModule: string;
+  /** Java version for builds (e.g., '17', '21') */
+  javaVersion: string;
+  /** App identifier for iOS/Android (e.g., 'com.example.app') */
+  appIdentifier: string;
+  /** Whether to build iOS targets */
+  buildIos: boolean;
+  /** Whether to use CocoaPods for iOS */
+  useCocoapods: boolean;
+  /** Firebase tester groups for distribution */
+  testerGroups?: string;
+  /** Firebase iOS App ID */
+  firebaseAppId?: string;
+  /** Git URL for iOS provisioning profiles */
+  provisioningGitUrl?: string;
+  /** Git branch for provisioning profiles */
+  provisioningGitBranch?: string;
+  /** Match type for iOS signing (adhoc, appstore, development) */
+  matchType?: 'adhoc' | 'appstore' | 'development';
+  /** Provisioning profile name */
+  provisioningProfileName?: string;
+  /** Path to iOS metadata */
+  metadataPath?: string;
+  /** Desktop module directory */
+  desktopDir?: string;
+}
+
+/**
+ * Workflow generation options
+ */
+export interface WorkflowGenerationOptions {
+  /** Generate PR check workflow */
+  generatePrCheck: boolean;
+  /** Generate multi-platform build workflow */
+  generateMultiPlatform: boolean;
+  /** Reusable workflow version tag (e.g., 'v1.0.7') */
+  actionHubVersion: string;
+}
+
+/**
+ * Result of content generation for a single file
+ */
+export interface GeneratedContent {
+  /** File path relative to project root */
+  path: string;
+  /** Generated content */
+  content: string;
+  /** Original content (for diff) */
+  originalContent?: string;
+}
+
+/**
+ * Generator result containing all generated content
+ */
+export interface GeneratorResult {
+  /** Successfully generated files */
+  files: GeneratedContent[];
+  /** Any errors encountered */
+  errors: string[];
+  /** Warnings (non-fatal issues) */
+  warnings: string[];
+}
 
 // ============================================
 // Constants
@@ -1482,6 +1748,16 @@ export const step10InitialState: Step10State = {
 };
 
 /**
+ * Initial state for repository fetch
+ */
+export const repoFetchInitialState: RepoFetchState = {
+  isLoading: false,
+  error: null,
+  sdkInfo: null,
+  lastFetched: null,
+};
+
+/**
  * Step labels for the progress indicator
  */
 export const STEP_LABELS: Record<number, string> = {
@@ -1638,6 +1914,209 @@ export function generateDarkPalette(light: ColorPalette): ColorPalette {
 export function getPresetById(id: string): ThemePreset | undefined {
   return THEME_PRESETS.find(preset => preset.id === id);
 }
+
+// ============================================
+// GitHub Repository Creation Types
+// ============================================
+
+/**
+ * GitHub authentication method
+ */
+export type GitHubAuthMethod = 'oauth' | 'pat';
+
+/**
+ * GitHub authentication state
+ */
+export interface GitHubAuthState {
+  /** Whether user is authenticated */
+  isAuthenticated: boolean;
+  /** Authentication method used */
+  method: GitHubAuthMethod | null;
+  /** GitHub username */
+  username: string | null;
+  /** User avatar URL */
+  avatarUrl: string | null;
+  /** Access token (stored securely) */
+  accessToken: string | null;
+  /** Token expiration time */
+  expiresAt: number | null;
+}
+
+/**
+ * GitHub repository visibility
+ */
+export type RepoVisibility = 'public' | 'private';
+
+/**
+ * GitHub repository creation options
+ */
+export interface GitHubRepoOptions {
+  /** Repository name */
+  name: string;
+  /** Repository description */
+  description: string;
+  /** Repository visibility */
+  visibility: RepoVisibility;
+  /** Initialize with README */
+  initReadme: boolean;
+  /** License template (e.g., 'mit', 'apache-2.0') */
+  license: string | null;
+  /** Create from template repository */
+  templateOwner: string | null;
+  templateRepo: string | null;
+}
+
+/**
+ * GitHub workflow run status
+ */
+export type WorkflowRunStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+
+/**
+ * GitHub workflow run information
+ */
+export interface WorkflowRunInfo {
+  /** Run ID */
+  id: number;
+  /** Workflow name */
+  name: string;
+  /** Run status */
+  status: WorkflowRunStatus;
+  /** Conclusion (success, failure, etc.) */
+  conclusion: string | null;
+  /** Run URL */
+  htmlUrl: string;
+  /** Created timestamp */
+  createdAt: string;
+  /** Updated timestamp */
+  updatedAt: string;
+}
+
+/**
+ * GitHub artifact information
+ */
+export interface GitHubArtifact {
+  /** Artifact ID */
+  id: number;
+  /** Artifact name */
+  name: string;
+  /** Size in bytes */
+  sizeInBytes: number;
+  /** Download URL (requires auth) */
+  archiveDownloadUrl: string;
+  /** Whether artifact has expired */
+  expired: boolean;
+  /** Expiration date */
+  expiresAt: string;
+}
+
+/**
+ * Repository creation result
+ */
+export interface RepoCreationResult {
+  /** Whether creation was successful */
+  success: boolean;
+  /** Created repository URL */
+  repoUrl: string | null;
+  /** Clone URL (HTTPS) */
+  cloneUrl: string | null;
+  /** SSH URL */
+  sshUrl: string | null;
+  /** Error message if failed */
+  error: string | null;
+}
+
+/**
+ * File commit operation
+ */
+export interface FileCommitOperation {
+  /** File path in repository */
+  path: string;
+  /** File content */
+  content: string;
+  /** Commit message for this file */
+  message?: string;
+}
+
+/**
+ * Commit result
+ */
+export interface CommitResult {
+  /** Whether commit was successful */
+  success: boolean;
+  /** Commit SHA */
+  sha: string | null;
+  /** Commit URL */
+  htmlUrl: string | null;
+  /** Error message if failed */
+  error: string | null;
+}
+
+/**
+ * GitHub project generation mode
+ */
+export type GenerationMode = 'download' | 'github';
+
+/**
+ * GitHub generation state for Step 10
+ */
+export interface GitHubGenerationState {
+  /** Generation mode */
+  mode: GenerationMode;
+  /** GitHub auth state */
+  auth: GitHubAuthState;
+  /** Repository creation options */
+  repoOptions: GitHubRepoOptions;
+  /** Whether repo was created */
+  repoCreated: boolean;
+  /** Created repository info */
+  createdRepo: RepoCreationResult | null;
+  /** Whether files were committed */
+  filesCommitted: boolean;
+  /** Commit result */
+  commitResult: CommitResult | null;
+  /** Whether workflow was triggered */
+  workflowTriggered: boolean;
+  /** Current workflow run */
+  workflowRun: WorkflowRunInfo | null;
+  /** Available artifacts */
+  artifacts: GitHubArtifact[];
+}
+
+/**
+ * Initial state for GitHub auth
+ */
+export const gitHubAuthInitialState: GitHubAuthState = {
+  isAuthenticated: false,
+  method: null,
+  username: null,
+  avatarUrl: null,
+  accessToken: null,
+  expiresAt: null,
+};
+
+/**
+ * Initial state for GitHub generation
+ */
+export const gitHubGenerationInitialState: GitHubGenerationState = {
+  mode: 'download',
+  auth: gitHubAuthInitialState,
+  repoOptions: {
+    name: '',
+    description: '',
+    visibility: 'private',
+    initReadme: false,
+    license: null,
+    templateOwner: null,
+    templateRepo: null,
+  },
+  repoCreated: false,
+  createdRepo: null,
+  filesCommitted: false,
+  commitResult: null,
+  workflowTriggered: false,
+  workflowRun: null,
+  artifacts: [],
+};
 
 // ============================================
 // Server Utility Functions

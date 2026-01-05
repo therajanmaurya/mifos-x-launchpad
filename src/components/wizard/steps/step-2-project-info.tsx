@@ -1,19 +1,12 @@
 'use client';
 
-import { Lock, FileCode, Building2, Package, Hash } from 'lucide-react';
+import { Lock, FileCode, Building2, Package, Hash, Loader2, AlertCircle, Cpu, GitBranch } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useStep2Form } from '@/store/wizard-store';
-import { ANDROID_SDK_VERSIONS, IOS_VERSIONS } from '@/types/wizard';
+import { Badge } from '@/components/ui/badge';
+import { useStep2Form, useSDKInfo, useAppSelection } from '@/store/wizard-store';
 
 export function Step2ProjectInfo() {
   const {
@@ -25,13 +18,11 @@ export function Step2ProjectInfo() {
     description,
     packageName,
     applicationId,
-    versionName,
-    versionCode,
-    minAndroidSdk,
-    targetAndroidSdk,
-    minIosVersion,
     handleChange,
   } = useStep2Form();
+
+  const { sdkInfo, isLoading: isLoadingSDK, error: sdkError } = useSDKInfo();
+  const { selectedAppData } = useAppSelection();
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -158,112 +149,111 @@ export function Step2ProjectInfo() {
           </CardContent>
         </Card>
 
-        {/* Version Section */}
+        {/* Version Section - Auto Generated */}
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <Hash className="w-5 h-5 text-primary" />
               Version Information
+              <Badge variant="secondary" className="ml-2 text-xs font-normal">
+                <GitBranch className="w-3 h-3 mr-1" />
+                Auto-managed
+              </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <FormField
-                label="Version Name"
-                required
-                value={versionName}
-                onChange={(value) => handleChange('versionName', value)}
-                placeholder="1.0.0"
-                helperText="Semantic versioning (X.Y.Z)"
-              />
-              <div className="space-y-2">
-                <Label>
-                  Version Code <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={versionCode}
-                  onChange={(e) => handleChange('versionCode', parseInt(e.target.value) || 1)}
-                />
+          <CardContent>
+            <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Version 1.0.0</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Build number auto-generated on each build
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    Auto
+                  </Badge>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-border/50">
                 <p className="text-xs text-muted-foreground">
-                  Integer, incremented for each release
+                  Versioning is managed automatically using semantic versioning (1.0.0).
+                  Build codes are generated based on timestamp during the build process.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* SDK Configuration Section */}
+        {/* SDK Configuration Section - Read Only from Selected App */}
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg">SDK Configuration</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-primary" />
+              SDK Configuration
+              <Badge variant="secondary" className="ml-2 text-xs font-normal">
+                <Lock className="w-3 h-3 mr-1" />
+                Auto-detected
+              </Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>
-                  Min Android SDK <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={minAndroidSdk.toString()}
-                  onValueChange={(value) => handleChange('minAndroidSdk', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select SDK" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ANDROID_SDK_VERSIONS.filter(v => v.value >= 21 && v.value <= 30).map((sdk) => (
-                      <SelectItem key={sdk.value} value={sdk.value.toString()}>
-                        {sdk.value} - {sdk.name.split(' ').slice(1).join(' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {isLoadingSDK ? (
+              <div className="flex items-center gap-3 py-4 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Loading SDK configuration from {selectedAppData?.name || 'repository'}...</span>
               </div>
+            ) : sdkError ? (
+              <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-destructive">Failed to load SDK configuration</p>
+                  <p className="text-sm text-muted-foreground">Please go back and select an app first</p>
+                </div>
+              </div>
+            ) : sdkInfo ? (
+              <div className="space-y-4">
+                {/* Build Tools */}
+                <div>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Build Tools</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge variant="secondary" className="text-sm">
+                      Kotlin {sdkInfo.kotlin}
+                    </Badge>
+                    <Badge variant="secondary" className="text-sm">
+                      Compose {sdkInfo.compose}
+                    </Badge>
+                    <Badge variant="secondary" className="text-sm">
+                      AGP {sdkInfo.androidGradlePlugin}
+                    </Badge>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label>
-                  Target Android SDK <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={targetAndroidSdk.toString()}
-                  onValueChange={(value) => handleChange('targetAndroidSdk', parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select SDK" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ANDROID_SDK_VERSIONS.filter(v => v.value >= 28).map((sdk) => (
-                      <SelectItem key={sdk.value} value={sdk.value.toString()}>
-                        {sdk.value} - {sdk.name.split(' ').slice(1).join(' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Platform Requirements */}
+                <div>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide">Platform Requirements</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Badge variant="outline" className="text-sm bg-green-50 text-green-700 border-green-200">
+                      Android {sdkInfo.minAndroidSdk} - {sdkInfo.targetAndroidSdk}
+                    </Badge>
+                    <Badge variant="outline" className="text-sm bg-blue-50 text-blue-700 border-blue-200">
+                      iOS {sdkInfo.minIosVersion}+
+                    </Badge>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label>
-                  Min iOS Version <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={minIosVersion}
-                  onValueChange={(value) => handleChange('minIosVersion', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select version" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {IOS_VERSIONS.map((ios) => (
-                      <SelectItem key={ios.value} value={ios.value}>
-                        {ios.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-muted-foreground">
+                  SDK versions are automatically detected from the selected base application and cannot be modified.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <p className="text-sm">No app selected</p>
+                <p className="text-xs mt-1">Go back to Step 1 to select a base application</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -274,10 +264,8 @@ export function Step2ProjectInfo() {
           projectName={projectName}
           displayName={displayName}
           packageName={packageName}
-          versionName={versionName}
-          versionCode={versionCode}
-          minAndroidSdk={minAndroidSdk}
-          minIosVersion={minIosVersion}
+          minAndroidSdk={sdkInfo?.minAndroidSdk ?? 24}
+          minIosVersion={sdkInfo?.minIosVersion ?? '15.0'}
         />
       </div>
     </div>
@@ -333,8 +321,6 @@ interface PreviewPanelProps {
   projectName: string;
   displayName: string;
   packageName: string;
-  versionName: string;
-  versionCode: number;
   minAndroidSdk: number;
   minIosVersion: string;
 }
@@ -343,8 +329,6 @@ function PreviewPanel({
   projectName,
   displayName,
   packageName,
-  versionName,
-  versionCode,
   minAndroidSdk,
   minIosVersion,
 }: PreviewPanelProps) {
@@ -366,8 +350,12 @@ function PreviewPanel({
           </div>
           <div>
             <span className="text-muted-foreground">Version:</span>
-            <p className="font-medium">
-              {versionName || '1.0.0'} ({versionCode})
+            <p className="font-medium flex items-center gap-2">
+              1.0.0
+              <Badge variant="outline" className="text-xs font-normal">
+                <Lock className="w-2.5 h-2.5 mr-1" />
+                Auto
+              </Badge>
             </p>
           </div>
           <div className="pt-2 border-t">
