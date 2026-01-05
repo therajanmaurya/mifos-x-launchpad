@@ -105,19 +105,19 @@ export const APP_REPOSITORIES: Record<AppType, RepoConfig> = {
   'mobile-wallet': {
     owner: 'openMF',
     repo: 'mobile-wallet',
-    branch: 'dev',
+    branch: 'development',
     libsVersionsPath: 'gradle/libs.versions.toml',
   },
   'mifos-mobile': {
     owner: 'openMF',
     repo: 'mifos-mobile',
-    branch: 'dev',
+    branch: 'development',
     libsVersionsPath: 'gradle/libs.versions.toml',
   },
   'android-client': {
     owner: 'openMF',
     repo: 'android-client',
-    branch: 'dev',
+    branch: 'development',
     libsVersionsPath: 'gradle/libs.versions.toml',
   },
   'blank': {
