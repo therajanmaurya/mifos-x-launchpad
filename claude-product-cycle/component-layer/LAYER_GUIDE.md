@@ -6,7 +6,7 @@
 
 ## Overview
 
-The component layer contains reusable React components for the MifosForge wizard. Components are organized by function:
+The component layer contains reusable React components for the MifosLaunchpad wizard. Components are organized by function:
 
 ```
 components/

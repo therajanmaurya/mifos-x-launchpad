@@ -1,6 +1,6 @@
 # Mockups Overview
 
-> Guide to creating and organizing visual mockups for MifosForge
+> Guide to creating and organizing visual mockups for MifosLaunchpad
 
 ## Structure
 

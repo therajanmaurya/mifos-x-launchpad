@@ -38,7 +38,7 @@ Create a mobile app screen for a project wizard.
 
 The screen should have:
 
-1. A header with a back button, app title "MifosForge", and step indicator "1/10"
+1. A header with a back button, app title "MifosLaunchpad", and step indicator "1/10"
 2. A progress indicator showing step 1 of 10 is active
 3. A title "Select Base Application" with subtitle "Choose which Mifos app to customize"
 4. Four selectable cards for different app options:

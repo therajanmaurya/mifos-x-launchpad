@@ -153,7 +153,7 @@ The design should be clean, professional, and trustworthy.
 ### Screen Prompt
 
 ```
-Design a [screen name] screen for MifosForge wizard.
+Design a [screen name] screen for MifosLaunchpad wizard.
 
 Device: iPhone 14 Pro (393 x 852)
 Style: Material Design 3

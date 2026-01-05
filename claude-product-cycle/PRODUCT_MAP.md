@@ -1,4 +1,4 @@
-# Product Map - MifosForge
+# Product Map - MifosLaunchpad
 
 > Central Navigation Hub for All Features
 

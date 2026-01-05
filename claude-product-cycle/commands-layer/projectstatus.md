@@ -4,7 +4,7 @@
 
 ## Purpose
 
-The `/projectstatus` command displays a comprehensive dashboard showing the current state of the MifosForge project across all layers.
+The `/projectstatus` command displays a comprehensive dashboard showing the current state of the MifosLaunchpad project across all layers.
 
 ## Usage
 
@@ -43,7 +43,7 @@ Output a formatted dashboard showing:
 ### Dashboard Format
 
 ```markdown
-# MifosForge - Project Status
+# MifosLaunchpad - Project Status
 
 **Last Updated**: [Date]
 **Current Focus**: [Feature/Task]

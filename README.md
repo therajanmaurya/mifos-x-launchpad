@@ -1,10 +1,10 @@
-# MifosForge - Mifos KMP Project Wizard
+# MifosLaunchpad - Mifos KMP Project Wizard
 
 > Generate white-labeled Mifos Kotlin Multiplatform mobile banking applications with complete CI/CD pipelines
 
 ## Overview
 
-MifosForge is a web-based project generator wizard that allows financial institutions and organizations to create customized, white-labeled Mifos mobile banking applications. The wizard generates production-ready projects with complete CI/CD pipelines for deploying to Firebase App Distribution, Google Play Store, and Apple App Store.
+MifosLaunchpad is a web-based project generator wizard that allows financial institutions and organizations to create customized, white-labeled Mifos mobile banking applications. The wizard generates production-ready projects with complete CI/CD pipelines for deploying to Firebase App Distribution, Google Play Store, and Apple App Store.
 
 ## Features
 
@@ -27,8 +27,8 @@ MifosForge is a web-based project generator wizard that allows financial institu
 
 ```bash
 # Clone the repository
-git clone https://github.com/openMF/mifosforge.git
-cd mifosforge
+git clone https://github.com/openMF/mifoslaunchpad.git
+cd mifoslaunchpad
 
 # Install dependencies
 npm install

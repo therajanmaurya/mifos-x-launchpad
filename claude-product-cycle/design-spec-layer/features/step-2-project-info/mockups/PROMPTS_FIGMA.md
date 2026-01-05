@@ -42,7 +42,7 @@
 
 ## AI Prompt - Full Screen
 
-Design a wizard form screen for MifosForge mobile app:
+Design a wizard form screen for MifosLaunchpad mobile app:
 
 **Step**: Project Information (Step 2 of 10)
 
@@ -50,7 +50,7 @@ Using Material 3 Design Kit components:
 
 1. **Top App Bar**:
    - Leading: Back arrow
-   - Title: "MifosForge"
+   - Title: "MifosLaunchpad"
    - Trailing: "2/10"
 
 2. **Progress Indicator**:

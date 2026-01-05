@@ -1,6 +1,6 @@
 # Implementation Patterns
 
-> Code patterns and best practices for MifosForge
+> Code patterns and best practices for MifosLaunchpad
 
 ## React Component Patterns
 
@@ -128,7 +128,7 @@ export const useWizardStore = create<WizardStore>()(
       resetWizard: () => set(initialState),
     }),
     {
-      name: 'mifosforge-wizard',
+      name: 'mifoslaunchpad-wizard',
       partialize: (state) => ({
         // Only persist these fields
         step1: state.step1,

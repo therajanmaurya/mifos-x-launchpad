@@ -6,7 +6,7 @@
 
 ## AI Prompt
 
-Design an icon upload screen for MifosForge:
+Design an icon upload screen for MifosLaunchpad:
 
 Using Material 3:
 1. Top App Bar with step indicator

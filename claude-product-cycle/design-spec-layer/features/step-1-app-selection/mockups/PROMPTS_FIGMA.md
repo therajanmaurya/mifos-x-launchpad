@@ -37,7 +37,7 @@
 
 ## AI Prompt - Full Screen
 
-Design a wizard step screen for MifosForge mobile app:
+Design a wizard step screen for MifosLaunchpad mobile app:
 
 **Step**: Select Base Application (Step 1 of 10)
 
@@ -45,7 +45,7 @@ Using Material 3 Design Kit components:
 
 1. **Top App Bar**:
    - Leading: Back arrow icon
-   - Title: "MifosForge"
+   - Title: "MifosLaunchpad"
    - Trailing: "1/10" step indicator
    - Height: 44px
    - Background: Surface

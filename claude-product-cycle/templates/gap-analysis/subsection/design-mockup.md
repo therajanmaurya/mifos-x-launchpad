@@ -114,7 +114,7 @@
 ## Figma File Organization
 
 ```
-MifosForge/
+MifosLaunchpad/
 ├── 0. Design System
 │   ├── Colors
 │   ├── Typography

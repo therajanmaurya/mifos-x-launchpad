@@ -39,7 +39,7 @@ npm run build
 #    - Select: mockup-tools/figma-plugin/manifest.json
 
 # 3. Run the plugin
-#    - Plugins → Development → MifosForge Mockup Generator
+#    - Plugins → Development → MifosLaunchpad Mockup Generator
 ```
 
 ---

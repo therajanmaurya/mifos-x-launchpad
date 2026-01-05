@@ -4,7 +4,7 @@
 
 ## Overview
 
-This layer contains definitions for all slash commands used in the MifosForge development workflow. Each command has a dedicated markdown file that defines its purpose, usage, and implementation details.
+This layer contains definitions for all slash commands used in the MifosLaunchpad development workflow. Each command has a dedicated markdown file that defines its purpose, usage, and implementation details.
 
 ## Available Commands
 

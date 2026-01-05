@@ -1,7 +1,7 @@
 {
-  "name": "mifosforge",
+  "name": "mifoslaunchpad",
   "version": "1.0.0",
-  "description": "MifosForge - Mifos KMP Project Wizard for generating white-labeled mobile banking apps",
+  "description": "MifosLaunchpad - Mifos KMP Project Wizard for generating white-labeled mobile banking apps",
   "private": true,
   "scripts": {
     "dev": "next dev",

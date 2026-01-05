@@ -96,7 +96,7 @@
 
 ### File Structure
 ```
-MifosForge/
+MifosLaunchpad/
 ├── 🎨 Design System
 │   ├── Colors
 │   ├── Typography

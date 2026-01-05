@@ -5,12 +5,12 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'MifosForge - Mifos KMP Project Wizard',
+  title: 'MifosLaunchpad - Mifos KMP Project Wizard',
   description: 'Generate white-labeled Mifos Kotlin Multiplatform mobile banking applications with complete CI/CD pipelines',
   keywords: ['Mifos', 'KMP', 'Kotlin Multiplatform', 'Mobile Banking', 'White Label', 'Project Generator'],
   authors: [{ name: 'Mifos Initiative' }],
   openGraph: {
-    title: 'MifosForge - Mifos KMP Project Wizard',
+    title: 'MifosLaunchpad - Mifos KMP Project Wizard',
     description: 'Generate white-labeled Mifos mobile banking apps in minutes',
     type: 'website',
   },

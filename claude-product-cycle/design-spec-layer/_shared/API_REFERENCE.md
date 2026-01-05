@@ -1,6 +1,6 @@
 # API Reference
 
-> TypeScript interfaces and API documentation for MifosForge
+> TypeScript interfaces and API documentation for MifosLaunchpad
 
 ## Core Types
 

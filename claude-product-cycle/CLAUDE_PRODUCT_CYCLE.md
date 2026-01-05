@@ -1,10 +1,10 @@
-# Claude Product Cycle - MifosForge
+# Claude Product Cycle - MifosLaunchpad
 
-> AI-Powered Development Framework for MifosForge Project Wizard
+> AI-Powered Development Framework for MifosLaunchpad Project Wizard
 
 ## Overview
 
-The Claude Product Cycle is a structured approach to AI-assisted software development. It provides a layered documentation system that enables Claude to understand, navigate, and implement features consistently across the MifosForge project.
+The Claude Product Cycle is a structured approach to AI-assisted software development. It provides a layered documentation system that enables Claude to understand, navigate, and implement features consistently across the MifosLaunchpad project.
 
 ## Architecture
 

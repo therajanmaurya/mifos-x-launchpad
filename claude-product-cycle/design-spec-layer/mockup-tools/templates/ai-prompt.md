@@ -18,7 +18,7 @@
 
 ## Main Screen Prompt
 
-Create a mobile app screen for MifosForge wizard:
+Create a mobile app screen for MifosLaunchpad wizard:
 
 **Screen**: [Step Name]
 **Device**: iPhone 14 Pro (393 x 852)
@@ -108,7 +108,7 @@ Create a [component type] component:
 
 ## AI Prompt
 
-Design a wizard step screen for MifosForge:
+Design a wizard step screen for MifosLaunchpad:
 
 Step: [Step Name] (Step N of 10)
 

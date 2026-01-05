@@ -13,7 +13,7 @@ export default function HomePage() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold">M</span>
             </div>
-            <span className="font-semibold text-xl">MifosForge</span>
+            <span className="font-semibold text-xl">MifosLaunchpad</span>
           </div>
           <nav className="flex items-center gap-6">
             <a href="https://github.com/openMF" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">

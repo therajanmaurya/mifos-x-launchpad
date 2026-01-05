@@ -44,7 +44,7 @@
     }
   ],
   "info": {
-    "author": "mifosforge",
+    "author": "mifoslaunchpad",
     "version": 1
   }
 }

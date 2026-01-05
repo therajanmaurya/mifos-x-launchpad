@@ -14,7 +14,7 @@
 
 ## AI Prompt - Full Screen
 
-Design a theme customization screen for MifosForge:
+Design a theme customization screen for MifosLaunchpad:
 
 **Step**: Branding & Theme (Step 3 of 10)
 

@@ -1,6 +1,6 @@
 # Design System Components
 
-> Component registry for MifosForge UI
+> Component registry for MifosLaunchpad UI
 
 ## Component Hierarchy
 

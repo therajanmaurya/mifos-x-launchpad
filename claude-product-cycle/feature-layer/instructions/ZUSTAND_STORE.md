@@ -56,7 +56,7 @@ export const useWizardStore = create<WizardState & WizardActions>()(
       resetWizard: () => set(initialState),
     }),
     {
-      name: 'mifosforge-wizard',
+      name: 'mifoslaunchpad-wizard',
     }
   )
 );

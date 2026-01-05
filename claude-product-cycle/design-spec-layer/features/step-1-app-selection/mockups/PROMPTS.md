@@ -22,7 +22,7 @@ Create a mobile app screen for a project wizard application:
 **Device**: iPhone 14 Pro (393 x 852)
 
 **Layout** (top to bottom):
-1. **Header** (44px): Back button on left, "MifosForge" centered, "Step 1 of 10" on right
+1. **Header** (44px): Back button on left, "MifosLaunchpad" centered, "Step 1 of 10" on right
 2. **Progress Bar**: 10 dots/steps, first one filled
 3. **Title Section**:
    - Main title: "Select Base Application" (28px bold)

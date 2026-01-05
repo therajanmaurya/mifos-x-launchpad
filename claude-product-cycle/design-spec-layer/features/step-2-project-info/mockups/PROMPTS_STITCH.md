@@ -36,7 +36,7 @@ Create a mobile form screen for a project wizard.
 
 The screen should have:
 
-1. A header with back button, "MifosForge" title, and "2/10" step indicator
+1. A header with back button, "MifosLaunchpad" title, and "2/10" step indicator
 2. A progress indicator showing step 2 of 10 is active
 3. A title "Project Information" with subtitle "Configure your project details"
 4. Multiple form sections in white cards:

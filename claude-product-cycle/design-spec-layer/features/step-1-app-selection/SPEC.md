@@ -10,7 +10,7 @@
 
 ## Overview
 
-The first step of the MifosForge wizard allows users to select which base Mifos application they want to customize. This choice determines the default features, configurations, and templates used throughout the rest of the wizard.
+The first step of the MifosLaunchpad wizard allows users to select which base Mifos application they want to customize. This choice determines the default features, configurations, and templates used throughout the rest of the wizard.
 
 ---
 
