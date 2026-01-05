@@ -124,15 +124,29 @@ export function GitHubGeneration({
       setCreatedRepo(forkResult);
       setStep('committing');
 
-      // Wait a moment for GitHub to finish creating the fork
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Wait for GitHub to finish creating the fork (forks can take a while)
+      // Retry getting the default branch with exponential backoff
+      let defaultBranch: string | null = null;
+      const repoName = repoOptions.name || sourceRepo.repo;
 
-      // Get the default branch
-      const defaultBranch = await getDefaultBranch(
-        auth.accessToken,
-        auth.username!,
-        repoOptions.name || sourceRepo.repo
-      ) || 'main';
+      for (let attempt = 0; attempt < 5; attempt++) {
+        // Wait progressively longer: 3s, 5s, 7s, 10s, 15s
+        const waitTime = [3000, 5000, 7000, 10000, 15000][attempt];
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+
+        defaultBranch = await getDefaultBranch(
+          auth.accessToken,
+          auth.username!,
+          repoName
+        );
+
+        if (defaultBranch) break;
+      }
+
+      // Use source repo's branch as fallback (usually 'development')
+      if (!defaultBranch) {
+        defaultBranch = sourceRepo.branch;
+      }
 
       // Step 2: Commit generated files
       const commitFiles = generatedFiles.map(file => ({
