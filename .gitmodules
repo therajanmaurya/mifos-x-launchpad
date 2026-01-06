@@ -1,0 +1,6 @@
+[submodule "submodules/mobile-wallet"]
+	path = submodules/mobile-wallet
+	url = https://github.com/openMF/mobile-wallet.git
+[submodule "submodules/mifos-mobile"]
+	path = submodules/mifos-mobile
+	url = https://github.com/openMF/mifos-mobile.git

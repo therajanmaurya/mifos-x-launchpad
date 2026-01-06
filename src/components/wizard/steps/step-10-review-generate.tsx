@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   Github,
   Cloud,
+  Rocket,
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +49,7 @@ import {
   type WizardState,
 } from '@/lib/generators';
 import { GitHubGeneration } from '../github-generation';
+import { V3BuildTrigger } from '../v3-build-trigger';
 
 export function Step10ReviewGenerate() {
   const {
@@ -71,8 +73,9 @@ export function Step10ReviewGenerate() {
 
   const [showImportDialog, setShowImportDialog] = useState(false);
 
-  // Generation mode state
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('download');
+  // Generation mode state - extended for V3
+  type ExtendedGenerationMode = GenerationMode | 'v3-build';
+  const [generationMode, setGenerationMode] = useState<ExtendedGenerationMode>('download');
   const [githubAuth, setGithubAuth] = useState<GitHubAuthState>(gitHubAuthInitialState);
   const [githubRepoOptions, setGithubRepoOptions] = useState<Omit<GitHubRepoOptions, 'initReadme' | 'license' | 'templateOwner' | 'templateRepo'>>({
     name: summary.step2.projectName?.toLowerCase().replace(/[^a-z0-9-]/g, '-') || '',
@@ -559,7 +562,7 @@ export function Step10ReviewGenerate() {
               <CardTitle className="text-base">Choose Generation Method</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => setGenerationMode('download')}
                   className={cn(
@@ -572,7 +575,24 @@ export function Step10ReviewGenerate() {
                   <Download className="w-6 h-6 mb-2 text-primary" />
                   <p className="font-medium">Download ZIP</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Download configuration files and apply manually
+                    Download config files
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => setGenerationMode('v3-build')}
+                  className={cn(
+                    'p-4 rounded-lg border-2 text-left transition-all relative',
+                    generationMode === 'v3-build'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">NEW</span>
+                  <Rocket className="w-6 h-6 mb-2 text-primary" />
+                  <p className="font-medium">Cloud Build</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Build via GitHub Actions
                   </p>
                 </button>
 
@@ -586,9 +606,9 @@ export function Step10ReviewGenerate() {
                   )}
                 >
                   <Github className="w-6 h-6 mb-2 text-primary" />
-                  <p className="font-medium">Create GitHub Repo</p>
+                  <p className="font-medium">Fork Repo</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Fork, configure, and build automatically
+                    Fork to your account
                   </p>
                 </button>
               </div>
@@ -615,6 +635,27 @@ export function Step10ReviewGenerate() {
                   <Cloud className="w-5 h-5" />
                   Prepare Files for GitHub
                 </Button>
+              )}
+
+              {/* V3 Cloud Build Mode */}
+              {generationMode === 'v3-build' && (
+                <V3BuildTrigger
+                  wizardState={{
+                    step1: summary.step1,
+                    step2: summary.step2,
+                    step3: summary.step3,
+                    step4: summary.step4,
+                    step5: summary.step5,
+                    step6: summary.step6,
+                    step7: summary.step7,
+                    step8: summary.step8,
+                    step9: summary.step9,
+                  } as WizardState}
+                  onComplete={() => {
+                    // Reset or show success
+                    resetGeneration();
+                  }}
+                />
               )}
             </CardContent>
           </Card>
