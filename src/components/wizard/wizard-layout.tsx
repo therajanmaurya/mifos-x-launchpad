@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useWizardNavigation, useCanProceed } from '@/store/wizard-store';
 import { STEP_LABELS, TOTAL_STEPS } from '@/types/wizard';
+import { UserProfile } from './user-profile';
 
 interface WizardLayoutProps {
   children: React.ReactNode;
@@ -50,18 +51,12 @@ export function WizardLayout({ children }: WizardLayoutProps) {
               <span className="font-semibold">MifosLaunchpad</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               Step {currentStep} of {TOTAL_STEPS}
             </span>
-            <a
-              href="https://github.com/openMF"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Github className="w-5 h-5" />
-            </a>
+            <div className="h-6 w-px bg-border hidden sm:block" />
+            <UserProfile />
           </div>
         </div>
       </header>

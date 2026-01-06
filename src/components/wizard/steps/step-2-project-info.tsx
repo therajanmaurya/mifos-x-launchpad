@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock, FileCode, Building2, Package, Hash, Loader2, AlertCircle, Cpu, GitBranch } from 'lucide-react';
+import { Lock, FileCode, Package, Hash, Loader2, AlertCircle, Cpu, GitBranch } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,9 +10,6 @@ import { useStep2Form, useSDKInfo, useAppSelection } from '@/store/wizard-store'
 
 export function Step2ProjectInfo() {
   const {
-    organizationName,
-    organizationWebsite,
-    supportEmail,
     projectName,
     displayName,
     description,
@@ -35,41 +32,6 @@ export function Step2ProjectInfo() {
             Configure your project metadata and package identifiers
           </p>
         </div>
-
-        {/* Organization Section */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-primary" />
-              Organization
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <FormField
-                label="Organization Name"
-                required
-                value={organizationName}
-                onChange={(value) => handleChange('organizationName', value)}
-                placeholder="Acme Financial Services"
-              />
-              <FormField
-                label="Website"
-                value={organizationWebsite}
-                onChange={(value) => handleChange('organizationWebsite', value)}
-                placeholder="https://example.com"
-                type="url"
-              />
-            </div>
-            <FormField
-              label="Support Email"
-              value={supportEmail}
-              onChange={(value) => handleChange('supportEmail', value)}
-              placeholder="support@example.com"
-              type="email"
-            />
-          </CardContent>
-        </Card>
 
         {/* Project Details Section */}
         <Card>

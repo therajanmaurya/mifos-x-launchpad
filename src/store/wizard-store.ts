@@ -999,10 +999,7 @@ export function useStep2Validation() {
   const step2 = useStep2();
   const errors: string[] = [];
 
-  // Required field validations
-  if (!step2.organizationName || step2.organizationName.length < 2) {
-    errors.push('Organization name is required (min 2 characters)');
-  }
+  // Required field validations (organization fields moved to onboarding)
   if (!step2.projectName || step2.projectName.length < 2) {
     errors.push('Project name is required (min 2 characters)');
   }
