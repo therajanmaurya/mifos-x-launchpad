@@ -56,7 +56,7 @@ export function UserProfile() {
   const handleLogout = () => {
     auth.clearAuth();
     onboarding.resetOnboarding();
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   const handleSaveOrg = () => {

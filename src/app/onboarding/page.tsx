@@ -60,7 +60,7 @@ export default function OnboardingPage() {
   // Redirect if needs login or already completed
   useEffect(() => {
     if (needsLogin) {
-      router.push('/login');
+      router.push('/');
     } else if (canAccessWizard) {
       router.push('/wizard');
     }
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
   }, [validateForm, completeOnboarding, router]);
 
   const handleBack = useCallback(() => {
-    router.push('/login');
+    router.push('/');
   }, [router]);
 
   return (

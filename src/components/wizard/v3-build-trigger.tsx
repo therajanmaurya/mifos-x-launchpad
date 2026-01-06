@@ -206,7 +206,7 @@ export function V3BuildTrigger({ wizardState, onComplete }: V3BuildTriggerProps)
                   variant="outline"
                   size="sm"
                   className="mt-3"
-                  onClick={() => window.location.href = '/login'}
+                  onClick={() => window.location.href = '/'}
                 >
                   <Github className="w-4 h-4 mr-2" />
                   Sign in with GitHub

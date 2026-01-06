@@ -24,8 +24,9 @@ const REQUIRED_SCOPES = 'repo workflow read:user user:email';
 
 // CORS proxy for GitHub OAuth endpoints (required for static sites)
 // GitHub's OAuth endpoints don't support CORS, so we need a proxy
-// For production, deploy your own proxy or use Cloudflare Workers
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Using api.allorigins.win as a reliable CORS proxy
+// For production, consider deploying your own Cloudflare Worker
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 // Device flow endpoints (proxied to avoid CORS issues)
 const DEVICE_CODE_URL = `${CORS_PROXY}${encodeURIComponent('https://github.com/login/device/code')}`;
