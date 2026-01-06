@@ -22,9 +22,16 @@ const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || '';
 // Required scopes for MifosLaunchpad
 const REQUIRED_SCOPES = 'repo workflow read:user user:email';
 
-// Device flow endpoints
-const DEVICE_CODE_URL = 'https://github.com/login/device/code';
-const ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token';
+// CORS proxy for GitHub OAuth endpoints (required for static sites)
+// GitHub's OAuth endpoints don't support CORS, so we need a proxy
+// For production, deploy your own proxy or use Cloudflare Workers
+const CORS_PROXY = 'https://corsproxy.io/?';
+
+// Device flow endpoints (proxied to avoid CORS issues)
+const DEVICE_CODE_URL = `${CORS_PROXY}${encodeURIComponent('https://github.com/login/device/code')}`;
+const ACCESS_TOKEN_URL = `${CORS_PROXY}${encodeURIComponent('https://github.com/login/oauth/access_token')}`;
+
+// GitHub API endpoints (these support CORS natively)
 const USER_API_URL = 'https://api.github.com/user';
 const USER_EMAILS_URL = 'https://api.github.com/user/emails';
 
