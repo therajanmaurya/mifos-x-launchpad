@@ -832,8 +832,10 @@ export const useWizardStore = create<WizardStore>()(
     }),
     {
       name: 'mifoslaunchpad-wizard',
-      // Only persist wizard data, not navigation state
+      // Persist wizard data and current step for resuming
       partialize: (state) => ({
+        currentStep: state.currentStep,
+        maxStepReached: state.maxStepReached,
         step1: state.step1,
         step2: state.step2,
         step3: state.step3,
@@ -843,7 +845,6 @@ export const useWizardStore = create<WizardStore>()(
         step7: state.step7,
         step8: state.step8,
         step9: state.step9,
-        maxStepReached: state.maxStepReached
       })
     }
   )
