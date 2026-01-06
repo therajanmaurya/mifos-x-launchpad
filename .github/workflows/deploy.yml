@@ -56,6 +56,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: Ov23liidhmghUNdv1OY2
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
