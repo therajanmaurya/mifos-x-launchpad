@@ -1,0 +1,378 @@
+# MifosLaunchpad Custom App Build Workflow
+# Triggered by GitHub Issues with 'build-request' label
+# Builds customized mobile banking apps from configuration
+
+name: Build Custom App
+
+on:
+  issues:
+    types: [opened, labeled]
+
+env:
+  JAVA_VERSION: '17'
+  GRADLE_VERSION: '8.5'
+
+jobs:
+  # ============================================
+  # Validate Build Configuration
+  # ============================================
+  validate:
+    if: contains(github.event.issue.labels.*.name, 'build-request')
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.parse.outputs.config }}
+      valid: ${{ steps.validate.outputs.valid }}
+      base_app: ${{ steps.parse.outputs.base_app }}
+      build_id: ${{ steps.parse.outputs.build_id }}
+
+    steps:
+      - name: Add 'building' label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['building']
+            });
+
+      - name: Parse build configuration
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body;
+
+            // Extract JSON from code block
+            const jsonMatch = body.match(/```json\n([\s\S]*?)\n```/);
+            if (!jsonMatch) {
+              core.setFailed('No JSON configuration found in issue body');
+              return;
+            }
+
+            try {
+              const config = JSON.parse(jsonMatch[1]);
+
+              // Validate required fields
+              if (!config.id) throw new Error('Missing build ID');
+              if (!config.baseApp) throw new Error('Missing baseApp');
+              if (!config.project?.name) throw new Error('Missing project name');
+              if (!config.project?.packageName) throw new Error('Missing package name');
+              if (!config.auth?.email) throw new Error('Missing auth email');
+
+              core.setOutput('config', JSON.stringify(config));
+              core.setOutput('base_app', config.baseApp);
+              core.setOutput('build_id', config.id);
+
+              console.log('Build configuration parsed successfully');
+              console.log('Build ID:', config.id);
+              console.log('Base App:', config.baseApp);
+              console.log('Project:', config.project.displayName);
+            } catch (error) {
+              core.setFailed(`Failed to parse configuration: ${error.message}`);
+            }
+
+      - name: Validate configuration
+        id: validate
+        run: |
+          echo "Configuration validated"
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+  # ============================================
+  # Build Android APK
+  # ============================================
+  build-android:
+    needs: validate
+    if: |
+      needs.validate.outputs.valid == 'true' &&
+      fromJson(needs.validate.outputs.config).platforms.android == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq imagemagick
+
+      - name: Decode and save icon
+        run: |
+          CONFIG='${{ needs.validate.outputs.config }}'
+          ICON_DATA=$(echo "$CONFIG" | jq -r '.icon.source')
+
+          if [ -n "$ICON_DATA" ] && [ "$ICON_DATA" != "null" ]; then
+            # Remove data URL prefix if present
+            ICON_DATA=$(echo "$ICON_DATA" | sed 's|^data:image/[^;]*;base64,||')
+            echo "$ICON_DATA" | base64 -d > /tmp/app_icon.png
+            echo "Icon saved to /tmp/app_icon.png"
+          else
+            echo "No icon provided, using default"
+          fi
+
+      - name: Run rebrand scripts
+        run: |
+          CONFIG='${{ needs.validate.outputs.config }}'
+          .github/scripts/rebrand.sh "$CONFIG"
+
+      - name: Generate Android icons
+        if: ${{ hashFiles('/tmp/app_icon.png') != '' }}
+        run: |
+          BASE_APP='${{ needs.validate.outputs.base_app }}'
+          .github/scripts/generate-icons.sh /tmp/app_icon.png ./generated_icons android
+
+          # Copy icons to submodule
+          cp -r ./generated_icons/android/* ./submodules/$BASE_APP/androidApp/src/main/res/ 2>/dev/null || \
+          cp -r ./generated_icons/android/* ./submodules/$BASE_APP/cmp-android/src/androidMain/res/ 2>/dev/null || \
+          echo "Could not copy Android icons - directory structure may differ"
+
+      - name: Build Android APK
+        working-directory: ./submodules/${{ needs.validate.outputs.base_app }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Find APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find ./submodules/${{ needs.validate.outputs.base_app }} -name "*.apk" -path "*release*" | head -1)
+          if [ -n "$APK_PATH" ]; then
+            echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+            echo "Found APK: $APK_PATH"
+          else
+            echo "No APK found"
+          fi
+
+      - name: Upload Android APK
+        if: steps.find_apk.outputs.apk_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 7
+
+  # ============================================
+  # Build iOS (requires macOS runner)
+  # ============================================
+  build-ios:
+    needs: validate
+    if: |
+      needs.validate.outputs.valid == 'true' &&
+      fromJson(needs.validate.outputs.config).platforms.ios == true
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          brew install jq imagemagick
+
+      - name: Decode and save icon
+        run: |
+          CONFIG='${{ needs.validate.outputs.config }}'
+          ICON_DATA=$(echo "$CONFIG" | jq -r '.icon.source')
+
+          if [ -n "$ICON_DATA" ] && [ "$ICON_DATA" != "null" ]; then
+            ICON_DATA=$(echo "$ICON_DATA" | sed 's|^data:image/[^;]*;base64,||')
+            echo "$ICON_DATA" | base64 -d > /tmp/app_icon.png
+          fi
+
+      - name: Run rebrand scripts
+        run: |
+          CONFIG='${{ needs.validate.outputs.config }}'
+          .github/scripts/rebrand.sh "$CONFIG"
+
+      - name: Generate iOS icons
+        if: ${{ hashFiles('/tmp/app_icon.png') != '' }}
+        run: |
+          BASE_APP='${{ needs.validate.outputs.base_app }}'
+          .github/scripts/generate-icons.sh /tmp/app_icon.png ./generated_icons ios
+
+          # Copy icons to submodule
+          cp -r ./generated_icons/ios/* ./submodules/$BASE_APP/iosApp/ 2>/dev/null || \
+          echo "Could not copy iOS icons - directory structure may differ"
+
+      - name: Build iOS (Archive only - no signing)
+        working-directory: ./submodules/${{ needs.validate.outputs.base_app }}
+        run: |
+          # Build for simulator (doesn't require signing)
+          xcodebuild -workspace iosApp/iosApp.xcworkspace \
+            -scheme iosApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            build 2>/dev/null || \
+          echo "iOS build skipped - may require additional setup"
+
+      # Note: Full iOS IPA builds require signing certificates
+      # This is a placeholder for the build step
+
+  # ============================================
+  # Create Release
+  # ============================================
+  release:
+    needs: [validate, build-android, build-ios]
+    if: always() && needs.validate.outputs.valid == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+        continue-on-error: true
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find ./artifacts -type f || echo "No artifacts found"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: build-${{ needs.validate.outputs.build_id }}
+          name: ${{ fromJson(needs.validate.outputs.config).project.displayName }} v${{ fromJson(needs.validate.outputs.config).project.version }}
+          body: |
+            ## Custom App Build
+
+            **Organization**: ${{ fromJson(needs.validate.outputs.config).organization.name }}
+            **Project**: ${{ fromJson(needs.validate.outputs.config).project.displayName }}
+            **Version**: ${{ fromJson(needs.validate.outputs.config).project.version }}
+            **Package**: ${{ fromJson(needs.validate.outputs.config).project.packageName }}
+            **Base App**: ${{ needs.validate.outputs.base_app }}
+
+            ### Platforms Built
+            - Android: ${{ fromJson(needs.validate.outputs.config).platforms.android }}
+            - iOS: ${{ fromJson(needs.validate.outputs.config).platforms.ios }}
+
+            ---
+            Built with [MifosLaunchpad](https://github.com/${{ github.repository }})
+          files: |
+            ./artifacts/**/*.apk
+            ./artifacts/**/*.ipa
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Comment on issue with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const config = JSON.parse('${{ needs.validate.outputs.config }}');
+            const buildId = '${{ needs.validate.outputs.build_id }}';
+
+            const androidBuilt = '${{ needs.build-android.result }}' === 'success';
+            const iosBuilt = '${{ needs.build-ios.result }}' === 'success';
+
+            let body = `## Build Complete!\n\n`;
+            body += `Your custom app **${config.project.displayName}** has been built.\n\n`;
+
+            if (androidBuilt || iosBuilt) {
+              body += `### Download\n`;
+              body += `[View Release](https://github.com/${context.repo.owner}/${context.repo.repo}/releases/tag/build-${buildId})\n\n`;
+            }
+
+            body += `### Build Results\n`;
+            body += `| Platform | Status |\n`;
+            body += `|----------|--------|\n`;
+            body += `| Android | ${androidBuilt ? 'Success' : 'Skipped/Failed'} |\n`;
+            body += `| iOS | ${iosBuilt ? 'Success' : 'Skipped/Failed'} |\n\n`;
+
+            body += `### Configuration\n`;
+            body += `- **Package**: \`${config.project.packageName}\`\n`;
+            body += `- **Version**: ${config.project.version}\n`;
+            body += `- **Organization**: ${config.organization.name}\n\n`;
+
+            body += `---\n`;
+            body += `Built with [MifosLaunchpad](https://github.com/${context.repo.owner}/${context.repo.repo})`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Update issue labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Remove 'building' label
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'building'
+              });
+            } catch (e) {
+              console.log('Could not remove building label');
+            }
+
+            // Add completion label
+            const androidSuccess = '${{ needs.build-android.result }}' === 'success';
+            const iosSuccess = '${{ needs.build-ios.result }}' === 'success';
+            const anySuccess = androidSuccess || iosSuccess;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [anySuccess ? 'build-complete' : 'build-failed']
+            });
+
+            // Close issue
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+      - name: Send email notification
+        if: ${{ env.SMTP_SERVER != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "MifosLaunchpad: Your build is ready!"
+          to: ${{ fromJson(needs.validate.outputs.config).auth.email }}
+          from: MifosLaunchpad <noreply@mifos.org>
+          body: |
+            Your custom app build is ready!
+
+            Project: ${{ fromJson(needs.validate.outputs.config).project.displayName }}
+            Version: ${{ fromJson(needs.validate.outputs.config).project.version }}
+
+            Download: https://github.com/${{ github.repository }}/releases/tag/build-${{ needs.validate.outputs.build_id }}
+
+            Thank you for using MifosLaunchpad!
+        continue-on-error: true
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}

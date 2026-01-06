@@ -2158,3 +2158,255 @@ export function validateServerEnvironment(env: ServerEnvironment): { valid: bool
 
   return { valid: errors.length === 0, errors };
 }
+
+// ============================================
+// V3 Authentication Types
+// ============================================
+
+/**
+ * V3 Authentication type
+ */
+export type V3AuthType = 'anonymous' | 'github' | 'supabase';
+
+/**
+ * V3 Authentication state
+ */
+export interface V3AuthState {
+  /** Authentication type chosen */
+  authType: V3AuthType | null;
+  /** Whether authentication is complete */
+  isAuthenticated: boolean;
+  /** User identifier (GitHub username or Supabase ID) */
+  userId?: string;
+  /** User email (required for all auth types) */
+  email?: string;
+  /** User avatar URL (GitHub) */
+  avatarUrl?: string;
+  /** GitHub access token */
+  githubToken?: string;
+  /** GitHub scopes */
+  githubScopes?: string[];
+  /** Builds completed today */
+  buildsToday: number;
+  /** Maximum builds per day based on auth type */
+  maxBuildsPerDay: number;
+  /** Date of last build (for rate limit reset) */
+  lastBuildDate?: string;
+}
+
+/**
+ * Initial V3 auth state
+ */
+export const v3AuthInitialState: V3AuthState = {
+  authType: null,
+  isAuthenticated: false,
+  buildsToday: 0,
+  maxBuildsPerDay: 3, // Anonymous default
+};
+
+/**
+ * Rate limits per auth type
+ */
+export const V3_RATE_LIMITS: Record<V3AuthType, number> = {
+  anonymous: 3,
+  github: 10,
+  supabase: 20,
+};
+
+// ============================================
+// V3 Onboarding Types
+// ============================================
+
+/**
+ * Organization information from onboarding
+ */
+export interface OrganizationInfo {
+  /** Organization name (required) */
+  name: string;
+  /** Contact email for build notifications (required) */
+  email: string;
+  /** Organization website (optional) */
+  website: string;
+  /** Contact phone (optional) */
+  phone: string;
+}
+
+/**
+ * V3 Onboarding state
+ */
+export interface V3OnboardingState {
+  /** Whether onboarding is complete */
+  completed: boolean;
+  /** Organization information */
+  organization: OrganizationInfo;
+  /** Whether terms of service accepted */
+  termsAccepted: boolean;
+}
+
+/**
+ * Initial V3 onboarding state
+ */
+export const v3OnboardingInitialState: V3OnboardingState = {
+  completed: false,
+  organization: {
+    name: '',
+    email: '',
+    website: '',
+    phone: '',
+  },
+  termsAccepted: false,
+};
+
+// ============================================
+// V3 Auth Actions
+// ============================================
+
+/**
+ * V3 Auth store actions
+ */
+export interface V3AuthActions {
+  /** Set authentication type */
+  setAuthType: (type: V3AuthType) => void;
+  /** Set GitHub authentication */
+  setGitHubAuth: (data: {
+    token: string;
+    username: string;
+    email?: string;
+    avatarUrl?: string;
+    scopes?: string[];
+  }) => void;
+  /** Clear authentication */
+  clearAuth: () => void;
+  /** Increment build count */
+  incrementBuildCount: () => void;
+  /** Check if can build (rate limit) */
+  canBuild: () => boolean;
+  /** Get remaining builds today */
+  getRemainingBuilds: () => number;
+}
+
+/**
+ * V3 Onboarding store actions
+ */
+export interface V3OnboardingActions {
+  /** Update organization field */
+  setOrganizationField: <K extends keyof OrganizationInfo>(
+    field: K,
+    value: OrganizationInfo[K]
+  ) => void;
+  /** Set entire organization */
+  setOrganization: (org: OrganizationInfo) => void;
+  /** Set terms accepted */
+  setTermsAccepted: (accepted: boolean) => void;
+  /** Complete onboarding */
+  completeOnboarding: () => void;
+  /** Reset onboarding */
+  resetOnboarding: () => void;
+}
+
+// ============================================
+// V3 Storage Keys
+// ============================================
+
+/**
+ * Storage keys for V3 state persistence
+ */
+export const V3_STORAGE_KEYS = {
+  AUTH: 'mifos-launchpad-v3-auth',
+  ONBOARDING: 'mifos-launchpad-v3-onboarding',
+} as const;
+
+// ============================================
+// V3 Build Configuration Types
+// ============================================
+
+/**
+ * Server configuration type for V3 (runtime only)
+ */
+export type V3ServerType = 'localhost' | 'self-hosted';
+
+/**
+ * V3 Server configuration (runtime only, not persisted)
+ */
+export interface V3ServerConfig {
+  /** Server type */
+  type: V3ServerType;
+  /** Localhost configuration */
+  localhost?: {
+    protocol: Protocol;
+    port: number;
+    apiPath: string;
+  };
+  /** Self-hosted configuration */
+  selfHosted?: {
+    protocol: Protocol;
+    host: string;
+    port: number;
+    apiPath: string;
+  };
+}
+
+/**
+ * V3 Build configuration (sent to GitHub Actions)
+ */
+export interface V3BuildConfig {
+  /** Unique build ID */
+  id: string;
+  /** Build config version */
+  version: '3.0';
+  /** Created timestamp */
+  createdAt: string;
+
+  /** Authentication info */
+  auth: {
+    type: V3AuthType;
+    userId?: string;
+    email: string;
+  };
+
+  /** Organization info (from onboarding) */
+  organization: OrganizationInfo;
+
+  /** Base application to customize */
+  baseApp: 'mobile-wallet' | 'mifos-mobile';
+
+  /** Project configuration */
+  project: {
+    name: string;
+    displayName: string;
+    packageName: string;
+    description?: string;
+    version: string;
+  };
+
+  /** Branding configuration */
+  branding: {
+    primaryColor: string;
+    secondaryColor: string;
+    accentColor: string;
+    darkMode: boolean;
+  };
+
+  /** Icon configuration */
+  icon: {
+    source: string; // Base64 encoded
+    shape: IconShape;
+    backgroundColor: string;
+    padding: number;
+  };
+
+  /** Target platforms */
+  platforms: {
+    android: boolean;
+    ios: boolean;
+    desktop: {
+      enabled: boolean;
+      windows: boolean;
+      macos: boolean;
+      linux: boolean;
+    };
+    web: boolean;
+  };
+
+  /** Server config is runtime only and NOT included in build config */
+}
