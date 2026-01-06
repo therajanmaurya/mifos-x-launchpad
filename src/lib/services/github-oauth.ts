@@ -24,13 +24,22 @@ const REQUIRED_SCOPES = 'repo workflow read:user user:email';
 
 // CORS proxy for GitHub OAuth endpoints (required for static sites)
 // GitHub's OAuth endpoints don't support CORS, so we need a proxy
-// Using api.allorigins.win as a reliable CORS proxy
-// For production, consider deploying your own Cloudflare Worker
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// Set NEXT_PUBLIC_OAUTH_PROXY_URL to your Cloudflare Worker URL
+// See cloudflare-worker/github-oauth-proxy.js for the worker code
+const CORS_PROXY_URL = process.env.NEXT_PUBLIC_OAUTH_PROXY_URL || '';
 
-// Device flow endpoints (proxied to avoid CORS issues)
-const DEVICE_CODE_URL = `${CORS_PROXY}${encodeURIComponent('https://github.com/login/device/code')}`;
-const ACCESS_TOKEN_URL = `${CORS_PROXY}${encodeURIComponent('https://github.com/login/oauth/access_token')}`;
+// Device flow endpoints
+// If no proxy configured, requests will fail with CORS error on static sites
+const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code';
+const GITHUB_ACCESS_TOKEN_URL = 'https://github.com/login/oauth/access_token';
+
+// Build URLs with optional proxy
+const DEVICE_CODE_URL = CORS_PROXY_URL
+  ? `${CORS_PROXY_URL}?url=${encodeURIComponent(GITHUB_DEVICE_CODE_URL)}`
+  : GITHUB_DEVICE_CODE_URL;
+const ACCESS_TOKEN_URL = CORS_PROXY_URL
+  ? `${CORS_PROXY_URL}?url=${encodeURIComponent(GITHUB_ACCESS_TOKEN_URL)}`
+  : GITHUB_ACCESS_TOKEN_URL;
 
 // GitHub API endpoints (these support CORS natively)
 const USER_API_URL = 'https://api.github.com/user';
