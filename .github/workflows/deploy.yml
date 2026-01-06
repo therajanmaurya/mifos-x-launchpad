@@ -58,6 +58,8 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_GITHUB_CLIENT_ID: Ov23liidhmghUNdv1OY2
+          # Add your Cloudflare Worker URL here after deploying cloudflare-worker/github-oauth-proxy.js
+          # NEXT_PUBLIC_OAUTH_PROXY_URL: https://github-oauth-proxy.YOUR-SUBDOMAIN.workers.dev
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
